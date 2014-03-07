@@ -1,16 +1,21 @@
+<<<<<<< HEAD
 -# if defined? @movie -#handle error case
 - if @movie != nil
   %h1 Details about "#{@movie.title}"
+=======
+-# app/views/movies/show.html.haml
+- if @movie != nil
+  %h2 #{@movie.title}
+
+>>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6
   %ul#details
-    %li
-      Title:
-      = @movie.title
     %li
       Rating:
       = @movie.rating
     %li
       Released on:
       = @movie.release_date.strftime("%B %d, %Y")
+<<<<<<< HEAD
   %h4 Description:
   %p#description= @movie.description
 - else
@@ -27,3 +32,16 @@
 /%h5
 /  =debug(@movie)
 /  =@movie.inspect
+=======
+
+  %h3 Description
+
+  %p#description= @movie.description
+
+  #footer-links
+    = button_to "Edit", edit_movie_path(@movie), :method => :get
+    = button_to "Delete", movie_path(@movie), :method => :delete, :confirm => "Are you sure you want to delete #{@movie.title}?"
+    = link_to "Return to movie list", movies_path
+- else
+  %h2 "Whoops! No movie here."
+>>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6

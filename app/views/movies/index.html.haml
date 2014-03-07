@@ -1,3 +1,4 @@
+-#  This file is app/views/movies/index.html.haml
 %h1 All Movies
 
 %table#movies
@@ -6,15 +7,22 @@
       %th Movie Title
       %th Rating
       %th Release Date
-      %th Movie Details
-      %th
+      %th More Info
   %tbody
     - @movies.each do |movie|
       %tr
         %td= movie.title 
         %td= movie.rating
+<<<<<<< HEAD
         %td= movie.release_date
         %td= link_to "Click to see the details of \"#{movie.title}\" ...", movie_path(movie)
 
 = link_to 'Add a new movie', new_movie_path
 
+=======
+        %td= movie.release_date.strftime("%B %d, %Y")
+        %td= link_to "Details", movie_path(movie)
+        
+#footer-links
+  = link_to 'Add new movie', new_movie_path
+>>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6
