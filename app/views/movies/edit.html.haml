@@ -1,8 +1,7 @@
-%h2 Edit Movie
-
+%h1 Edit Movie
 = form_tag movie_path(@movie), :method => :put do
   = render :partial => 'movie_form'
-  = submit_tag 'Update'
-
-#footer-links
-  = link_to "Return to movie list", movies_path
+  = submit_tag 'Update Movie'
+%br/
+%br/
+= link_to 'Back to movie list', movies_path

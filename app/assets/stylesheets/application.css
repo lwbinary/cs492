@@ -12,7 +12,6 @@
  *= require_tree .
  */
 html, body {
-<<<<<<< HEAD
   margin-left: 1%;
   margin-right: 1%;
   margin: 0;
@@ -64,107 +63,25 @@ table#movies {
   border-collapse: collapse;
   width: 100%;
   border-bottom: 2px solid black;
-=======
-  margin: 0;
-  padding: 0;
-  background: #e8ecf0;
-  color: #333;
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 1em;
-}
-div#main {
-  width:960px;
-  margin: 0 auto;
-  padding: 0 20px 20px;
-}
-a {
-  text-decoration: none;
-  color: #a28351;
-}
-a:hover {
-  font-style: italic;
-  color: #182e4f;
-}
-a:-webkit-any-link {
-  text-decoration: none;
-}
-h1 {
-  color: #182e4f;
-  font-size: 150%;
-  text-transform: uppercase;
-  display: block;
-  width: 100%;
-}
-h1.title {
-  background: #182e4f;
-  color: #fff;
-  margin-bottom: 1em;
-  padding: 12px 0 16px;
-  font-size: 2em;
-  text-align: center;
-  border-bottom: 4px solid gold;
-}
-table#movies {
-  margin: 10px;
-  border-collapse: collapse;
-  width: 100%;
-  border-bottom: 2px solid #000;
->>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6
 }
 table#movies th {
   border: 2px solid white;
   font-weight: bold;
-<<<<<<< HEAD
   background-color: lightgreen;
-=======
-  background-color: #F5E8D0;
->>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6
 }
 table#movies th, table#movies td {
   padding: 4px;
   text-align: left;
 }
-<<<<<<< HEAD
 div#notice, div#warning {
   background: yellow;
   margin: 1em 0;
   padding: 4px;
   text-align: center;
-=======
-#notice, #warning {
-  margin: 1em 0;
-  padding: 4px;
-}
-#notice {
-  background: #F1F8EB;
-  border:1px solid #7AC142;
-}
-#warning {
-  background: #FFC0CB;
-  border:1px solid red;
->>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6
 }
 form label {
   display: block;
   line-height: 25px;
-<<<<<<< HEAD
   font-weight: lighter;
   color: darkgreen;
 }
-=======
-  font-weight: bold;
-  color: #182e4f;
-}
-input[type="text"] {
-  width: 300px;
-}
-input[type="submit"] {
-  display: block;
-}
-#footer-links {
-  margin-top: 1.5em;
-}
-#footer-links a {
-  padding-right: 10px;
-}
->>>>>>> 3948923ac1e6019cca4153111c478e2714e830f6
