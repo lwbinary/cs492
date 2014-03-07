@@ -1,6 +1,4 @@
-Fresh Tomato Saas App
+FreshTomatoSaasApp
 ==================
 
-Master page
-
-Let's get saassy ! 
+Class proj - Team1
