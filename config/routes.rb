@@ -54,4 +54,5 @@ FreshTomato::Application.routes.draw do
   #     resources :products
   #   end
 	resources :movies
+  	root :to => redirect('/movies')
 end
