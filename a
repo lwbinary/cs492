@@ -1,0 +1,1393 @@
+commit 3c27cae9b4c993a5023e4c4464c6a94421d19247
+Author: Leon <saasbook@saasbook.(none)>
+Date:   Sat Mar 15 22:55:56 2014 -0300
+
+    initial commit
+
+diff --git a/app/assets/stylesheets/application.css~ b/app/assets/stylesheets/application.css~
+new file mode 100644
+index 0000000..f5b4767
+--- /dev/null
++++ b/app/assets/stylesheets/application.css~
+@@ -0,0 +1,87 @@
++/*
++ * This is a manifest file that'll be compiled into application.css, which will include all the files
++ * listed below.
++ *
++ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
++ * or vendor/assets/stylesheets of plugins, if any, can be referenced here using a relative path.
++ *
++ * You're free to add application-wide styles to this file and they'll appear at the top of the
++ * compiled file, but it's generally better to create a new file per style scope.
++ *
++ *= require_self
++ *= require_tree .
++ */
++html, body {
++  margin-left: 1%;
++  margin-right: 1%;
++  margin: 0;
++  padding: 0;
++  background: White;
++  color: Black;
++  font-family: Tahoma, Verdana, sans-serif;
++  font-size: 10pt;
++}
++div#main {
++  width: 100%;
++  margin: 0 auto;
++  background-color: green;
++}
++a {
++  background: transparent;
++  color: blue;
++  text-decoration: underline;
++  font-weight: lighter;
++}
++h1 {
++  color: navy;
++  font-size: 1.5em;
++  font-style: normal;
++  display: block;
++  width: 100%;
++  border-bottom: 1px solid Blue;
++}
++h1.title {
++  margin: 0 0 1em;
++  padding: 10px;
++  background-color: green;
++  color: white;
++  font-size: 2em;
++  font-style: normal;
++  text-align: center;
++}
++h2 {
++  color: navy;
++  font-size: 1.5em;
++  font-style: oblique;
++  font-weight: bold;
++  display: block;
++  width: 100%;
++  border-bottom: 1px solid lightblue;
++}
++table#movies {
++  margin: 0 auto;
++  border-collapse: collapse;
++  width: 100%;
++  border-bottom: 2px solid black;
++}
++table#movies th {
++  border: 2px solid white;
++  font-weight: bold;
++  background-color: lightgreen;
++}
++table#movies th, table#movies td {
++  padding: 4px;
++  text-align: left;
++}
++div#notice, div#warning {
++  background: yellow;
++  margin: 1em 0;
++  padding: 4px;
++  text-align: center;
++}
++form label {
++  display: block;
++  line-height: 25px;
++  font-weight: lighter;
++  color: darkgreen;
++}
+diff --git a/app/controllers/application_controller.rb~ b/app/controllers/application_controller.rb~
+new file mode 100644
+index 0000000..6373bd9
+--- /dev/null
++++ b/app/controllers/application_controller.rb~
+@@ -0,0 +1,13 @@
++class ApplicationController < ActionController::Base
++  # Prevent CSRF attacks by raising an exception.
++  # For APIs, you may want to use :null_session instead.
++  protect_from_forgery with: :exception
++
++  before_filter :set_current_user
++  protected # prevents method from being invoked by a route
++  def set_current_user
++    # we exploit the fact that find_by_id(nil) returns nil
++    @current_user ||= Moviegoer.find_by_id(session[:user_id])
++    redirect_to login_path and return unless @current_user
++  end
++end
+diff --git a/app/controllers/movies_controller.rb b/app/controllers/movies_controller.rb
+new file mode 100644
+index 0000000..65470a8
+--- /dev/null
++++ b/app/controllers/movies_controller.rb
+@@ -0,0 +1,66 @@
++ # app/controllers/movies_controller.rb
++class MoviesController < ApplicationController
++  def index
++    @movies = Movie.all
++  end
++
++  # Show the new movie form
++  def new
++    @movie = Movie.new
++  end
++  
++  # Create a new movie with given info from 'new' form and
++  # redirect to movies page on success.
++  def create
++    @movie = Movie.new(movie_params)
++    temp = @movie.title.squeeze(" ").strip().titleize()
++    @movie.title = temp
++    if @movie.save
++      flash[:notice] = "#{@movie.title} was successfully created."
++      redirect_to movies_path
++    else
++      # Create failed, re-render the form
++      render 'new'
++    end
++  end
++
++  # Show a single movie page
++  def show
++    id = params[:id]
++    @movie = Movie.find(id)
++  end
++  
++  # Show the edit form for a movie
++  def edit
++    @movie = Movie.find params[:id]
++  end
++
++  # Update a movie with given info from 'edit' form and redirect
++  # to the movie's page.
++  def update
++    @movie = Movie.find params[:id]
++    temp = @movie.title.squeeze(" ").strip().titleize()
++    @movie.title = temp
++    if @movie.update_attributes(movie_params)
++      flash[:notice] = "#{@movie.title} was successfully updated."
++      redirect_to movie_path(@movie)
++    else
++      render 'edit'
++    end
++  end
++
++  # Delete a movie and redirect to the movies page.
++  def destroy
++    @movie = Movie.find params[:id]
++    @movie.destroy
++    flash[:notice] = "Deleted '#{@movie.title}'."
++    redirect_to movies_path
++  end
++
++  # Define movie parameters for validation
++  private
++  def movie_params
++    params.require(:movie).permit(:title, :rating, :release_date, :description)
++  end
++
++end
+diff --git a/app/controllers/movies_controller.rb~ b/app/controllers/movies_controller.rb~
+index 6fa0d04..eec6be0 100644
+--- a/app/controllers/movies_controller.rb~
++++ b/app/controllers/movies_controller.rb~
+@@ -1,60 +1,66 @@
++# app/controllers/movies_controller.rb
+ class MoviesController < ApplicationController
++  def index
++    @movies = Movie.all
++  end
+ 
+-	def index
+-		@movies = Movie.all
+-	end
++  # Show the new movie form
++  def new
++    @movie = Movie.new
++  end
++  
++  # Create a new movie with given info from 'new' form and
++  # redirect to movies page on success.
++  def create
++    @movie = Movie.new(movie_params)
++    temp = @movie.title.squeeze(" ").strip().titleize()
++    @movie.title = temp
++    if @movie.save
++      flash[:notice] = "#{@movie.title} was successfully created."
++      redirect_to movies_path
++    else
++      # Create failed, re-render the form
++      render 'new'
++    end
++  end
+ 
+-	def show
+-		id = params[:id]
+-		@movie = Movie.find(id)
+-	end
++  # Show a single movie page
++  def show
++    id = params[:id]
++    @movie = Movie.find(id)
++  end
++  
++  # Show the edit form for a movie
++  def edit
++    @movie = Movie.find params[:id]
++  end
+ 
+-	def create
+-		#debugger
+-		logger.debug("MoviesController create movie...........>#{params.inspect}")
+-		@movie = Movie.new(movie_params)
+-		if @movie.save
+-			flash[:notice] = "Movie \"#{@movie.title}\" was successfully created."
+-			#instead of create a create view, we'd like to go to the movie list page after created a movie
+-			redirect_to movies_path
+-		else
+-			render 'new' # new template can access @movie's field, @movie available to the view and hold value entered first time
+-		end
+-	end
++  # Update a movie with given info from 'edit' form and redirect
++  # to the movie's page.
++  def update
++    @movie = Movie.find params[:id]
++    temp = @movie.title.squeeze(" ").strip().titleize()
++    @movie.title = temp
++    if @movie.update_attributes(movie_params)
++      flash[:notice] = "#{@movie.title} was successfully updated."
++      redirect_to movie_path(@movie)
++    else
++      render 'edit'
++    end
++  end
+ 
+-	def update
+-		@movie = Movie.find(params[:id])
+-		if @movie.update_attributes(movie_params)
+-			flash[:notice] = "'#{@movie.title}' updated."
+-			redirect_to movie_path(@movie)
+-			#respond_to do |format|
+-				#format.html {redirect_to movie_path(@movies)}
+-				#format.xml {render xml: @movie.to_xml}
+-			#end
+-		else
+-			render 'edit'
+-		end
+-	end
++  # Delete a movie and redirect to the movies page.
++  def destroy
++    @movie = Movie.find params[:id]
++    @movie.destroy
++    flash[:notice] = "Deleted '#{@movie.title}'."
++    redirect_to movies_path
++  end
+ 
+-	def new
+-		@movie = Movie.new
+-	end
++  # Define movie parameters for validation
++  private
++  def movie_params
++    params.require(:movie).permit(:title, :rating, :release_date, :description)
++  end
+ 
+-	def edit
+-		id = params[:id]
+-		@movie = Movie.find(id)
+-	end
+-
+-	def destroy
+-		id = params[:id]
+-		@movie = Movie.find(id)
+-		@movie.destroy
+-		flash[:notice] = "'#{@movie.title}' deleted."
+-		redirect_to movies_path
+-	end
+-
+-	private
+-	def movie_params
+-		params.require(:movie).permit(:title, :rating, :description, :release_date)
+-	end
+ end
+diff --git a/app/models/movie.rb b/app/models/movie.rb
+index a6e9217..faced66 100644
+--- a/app/models/movie.rb
++++ b/app/models/movie.rb
+@@ -2,6 +2,7 @@ class Movie < ActiveRecord::Base
+ 	validates :title, :presence => true
+ 	validates :release_date, :presence => true
+ 	validate :title_char_limit # uses custom validator below
++  	validate :released_2016_or_earlier # uses custom validator below
+ 	validates_uniqueness_of :title
+ 
+ 	def title_char_limit
+@@ -9,6 +10,11 @@ class Movie < ActiveRecord::Base
+ 		self.title.length < 3
+ 	end
+ 
++	def released_2016_or_earlier
++		errors.add(:release_date, 'must be 2016 or earlier') if
++		self.release_date > Date.parse('31 Dec 2016')
++	end
++
+ 	before_save :capitalize_title # capitalize title before save
+   	def capitalize_title
+    		self.title = self.title.split(/\s+/).map(&:downcase).
+diff --git a/app/models/movie.rb~ b/app/models/movie.rb~
+new file mode 100644
+index 0000000..07d3c92
+--- /dev/null
++++ b/app/models/movie.rb~
+@@ -0,0 +1,23 @@
++class Movie < ActiveRecord::Base
++	validates :title, :presence => true
++	validates :release_date, :presence => true
++	validate :title_char_limit # uses custom validator below
++  	validate :released_2015_or_earlier # uses custom validator below
++	validates_uniqueness_of :title
++
++	def title_char_limit
++		errors.add(:title, 'has at least 3 chars') if
++		self.title.length < 3
++	end
++
++	def released_2015_or_earlier
++		errors.add(:release_date, 'must be 2015 or earlier') if
++		self.release_date > Date.parse('31 Dec 2015')
++	end
++
++	before_save :capitalize_title # capitalize title before save
++  	def capitalize_title
++   		self.title = self.title.split(/\s+/).map(&:downcase).
++        map(&:capitalize).join(' ')
++  end
++end
+diff --git a/app/views/index.html.haml~ b/app/views/index.html.haml~
+new file mode 100644
+index 0000000..4a73508
+--- /dev/null
++++ b/app/views/index.html.haml~
+@@ -0,0 +1,16 @@
++%h1 All Movies
++
++%table#movies
++  %thead
++    %tr
++      %th Movie Title
++      %th Rating
++      %th Release Date
++      %th Movie Details
++  %tbody
++    - @movies.each do |movie|
++      %tr
++        %td= movie.title 
++        %td= movie.rating
++        %td= movie.release_date
++        %td= link_to "Click to see the details of \"#{movie.title}\" ...", movie_path(movie)
+diff --git a/app/views/layouts/application.html.haml~ b/app/views/layouts/application.html.haml~
+new file mode 100644
+index 0000000..80b25f1
+--- /dev/null
++++ b/app/views/layouts/application.html.haml~
+@@ -0,0 +1,17 @@
++!!! 5
++%html
++  %head
++    %title Fresh Tomato
++    = stylesheet_link_tag 'application'
++    = javascript_include_tag 'application'
++    = csrf_meta_tags
++
++  %body
++    %h1.title ^_^ Fresh Tomato Cinema ^_^
++    #main
++      - if flash[:notice]
++        #notice.message= flash[:notice]
++      - elsif flash[:warning]
++        #warning.message= flash[:warning]
++
++    = yield
+diff --git a/app/views/movies/_movie_form.html.haml~ b/app/views/movies/_movie_form.html.haml~
+new file mode 100644
+index 0000000..3904b19
+--- /dev/null
++++ b/app/views/movies/_movie_form.html.haml~
+@@ -0,0 +1,21 @@
++- unless @movie.errors.empty?
++  #warning
++    Errors prevented this movie from being #{controller.action_name}d:
++    %ul
++      - @movie.errors.full_messages.each do |error|
++        %li= error
++
++= label :movie, :title, 'Title'
++= text_field :movie, :title
++%br/
++= label :movie, :rating, 'Rating'
++= select :movie, :rating, ['G','PG','PG-13','R','NC-17']
++%br/
++= label :movie, :release_date, 'Released On'
++= date_select :movie, :release_date
++-#, :start_year => 2000
++%br/
++= label :movie, :description, 'Description'
++= text_field :movie, :description
++%br/
++%br/
+diff --git a/app/views/movies/edit.html.haml~ b/app/views/movies/edit.html.haml~
+new file mode 100644
+index 0000000..dc75476
+--- /dev/null
++++ b/app/views/movies/edit.html.haml~
+@@ -0,0 +1,21 @@
++%h1 Edit Movie
++= form_tag movie_path(@movie), :method => :put do
++  = label :movie, :title, 'Title'
++  = text_field :movie, :title
++  %br/
++  = label :movie, :rating, 'Rating'
++  = select :movie, :rating, ['G','PG','PG-13','R','NC-17']
++  %br/
++  = label :movie, :release_date, 'Released On'
++  = date_select :movie, :release_date
++  -#, :start_year => 2000
++  %br/
++  = label :movie, :description, 'Description'
++  = text_field :movie, :description
++  %br/
++  %br/
++  -# = render :partial => 'movie_form'
++  = submit_tag 'Update Movie'
++%br/
++%br/
++= link_to 'Back to movie list', movies_path
+diff --git a/app/views/movies/new.html.haml~ b/app/views/movies/new.html.haml~
+new file mode 100644
+index 0000000..9ff96a1
+--- /dev/null
++++ b/app/views/movies/new.html.haml~
+@@ -0,0 +1,7 @@
++%h1 Create A New Movie
++= form_tag movies_path, :method => :post do
++  = render :partial => 'movie_form'
++  = submit_tag 'Create this movie'
++%br/
++%br/
++= link_to 'Back to movie list', movies_path
+diff --git a/config/cucumber.yml b/config/cucumber.yml
+new file mode 100644
+index 0000000..19b288d
+--- /dev/null
++++ b/config/cucumber.yml
+@@ -0,0 +1,8 @@
++<%
++rerun = File.file?('rerun.txt') ? IO.read('rerun.txt') : ""
++rerun_opts = rerun.to_s.strip.empty? ? "--format #{ENV['CUCUMBER_FORMAT'] || 'progress'} features" : "--format #{ENV['CUCUMBER_FORMAT'] || 'pretty'} #{rerun}"
++std_opts = "--format #{ENV['CUCUMBER_FORMAT'] || 'pretty'} --strict --tags ~@wip"
++%>
++default: <%= std_opts %> features
++wip: --tags @wip:3 --wip features
++rerun: <%= rerun_opts %> --format rerun --out rerun.txt --strict --tags ~@wip
+diff --git a/config/routes.rb~ b/config/routes.rb~
+new file mode 100644
+index 0000000..09ff033
+--- /dev/null
++++ b/config/routes.rb~
+@@ -0,0 +1,56 @@
++FreshTomato::Application.routes.draw do
++  # The priority is based upon order of creation: first created -> highest priority.
++  # See how all your routes lay out with "rake routes".
++
++  # You can have the root of your site routed with "root"
++  # root 'welcome#index'
++
++  # Example of regular route:
++  #   get 'products/:id' => 'catalog#view'
++
++  # Example of named route that can be invoked with purchase_url(id: product.id)
++  #   get 'products/:id/purchase' => 'catalog#purchase', as: :purchase
++
++  # Example resource route (maps HTTP verbs to controller actions automatically):
++  #   resources :products
++
++  # Example resource route with options:
++  #   resources :products do
++  #     member do
++  #       get 'short'
++  #       post 'toggle'
++  #     end
++  #
++  #     collection do
++  #       get 'sold'
++  #     end
++  #   end
++
++  # Example resource route with sub-resources:
++  #   resources :products do
++  #     resources :comments, :sales
++  #     resource :seller
++  #   end
++
++  # Example resource route with more complex sub-resources:
++  #   resources :products do
++  #     resources :comments
++  #     resources :sales do
++  #       get 'recent', on: :collection
++  #     end
++  #   end
++
++  # Example resource route with concerns:
++  #   concern :toggleable do
++  #     post 'toggle'
++  #   end
++  #   resources :posts, concerns: :toggleable
++  #   resources :photos, concerns: :toggleable
++
++  # Example resource route within a namespace:
++  #   namespace :admin do
++  #     # Directs /admin/products/* to Admin::ProductsController
++  #     # (app/controllers/admin/products_controller.rb)
++  #     resources :products
++  #   end
++end
+diff --git a/db/migrate/20140219023024_create_movies.rb~ b/db/migrate/20140219023024_create_movies.rb~
+new file mode 100644
+index 0000000..cca0dfd
+--- /dev/null
++++ b/db/migrate/20140219023024_create_movies.rb~
+@@ -0,0 +1,15 @@
++class CreateMovies < ActiveRecord::Migration
++	def up
++		create_table :movies do |t|
++			t.string	"title"
++			t.string	"rating"
++			t.text		"description"
++			t.datetime	"release_date"
++			t.timestamps
++		end
++	end
++
++	def down
++		drop_table "movies"
++	end
++end
+diff --git a/db/migrate/20140219023026_create_movies.rb b/db/migrate/20140219023026_create_movies.rb
+new file mode 100644
+index 0000000..24ce8d6
+--- /dev/null
++++ b/db/migrate/20140219023026_create_movies.rb
+@@ -0,0 +1,15 @@
++class CreateMovies < ActiveRecord::Migration
++  def up
++    create_table :movies do |t|
++			t.string 	"title"
++			t.string 	"rating"
++			t.text 		"description"
++			t.datetime 	"release_date"
++			t.timestamps
++    end
++  end
++
++	def down
++		drop_table 'movies'
++	end 
++end
+diff --git a/db/migrate/20140219023026_create_movies.rb~ b/db/migrate/20140219023026_create_movies.rb~
+new file mode 100644
+index 0000000..24ce8d6
+--- /dev/null
++++ b/db/migrate/20140219023026_create_movies.rb~
+@@ -0,0 +1,15 @@
++class CreateMovies < ActiveRecord::Migration
++  def up
++    create_table :movies do |t|
++			t.string 	"title"
++			t.string 	"rating"
++			t.text 		"description"
++			t.datetime 	"release_date"
++			t.timestamps
++    end
++  end
++
++	def down
++		drop_table 'movies'
++	end 
++end
+diff --git a/db/migrate/20140221023108_create_movies.rb b/db/migrate/20140221023108_create_movies.rb
+new file mode 100644
+index 0000000..c87e03c
+--- /dev/null
++++ b/db/migrate/20140221023108_create_movies.rb
+@@ -0,0 +1,15 @@
++class CreateMovies < ActiveRecord::Migration
++	def up
++		create_table 'movies' do |t|
++			t.string	'title'
++			t.string	'rating'
++			t.text		'description'
++			t.datetime	'release_date'
++			t.timestamps
++		end
++	end
++
++	def down
++		drop_table 'movies'
++	end  
++end
+diff --git a/db/migrate/20140221023108_create_movies.rb~ b/db/migrate/20140221023108_create_movies.rb~
+new file mode 100644
+index 0000000..c87e03c
+--- /dev/null
++++ b/db/migrate/20140221023108_create_movies.rb~
+@@ -0,0 +1,15 @@
++class CreateMovies < ActiveRecord::Migration
++	def up
++		create_table 'movies' do |t|
++			t.string	'title'
++			t.string	'rating'
++			t.text		'description'
++			t.datetime	'release_date'
++			t.timestamps
++		end
++	end
++
++	def down
++		drop_table 'movies'
++	end  
++end
+diff --git a/db/migrate/20140221023421_create_movies.rb b/db/migrate/20140221023421_create_movies.rb
+new file mode 100644
+index 0000000..b3bb3fb
+--- /dev/null
++++ b/db/migrate/20140221023421_create_movies.rb
+@@ -0,0 +1,15 @@
++class CreateMovies < ActiveRecord::Migration
++  def up
++    create_table :movies do |t|
++			t.string 	"title"
++			t.string 	"rating"
++			t.text 		"description"
++			t.datetime 	"release_date"
++			t.timestamps
++		end
++  end
++
++	def down
++		drop_table 'movies'
++  end
++end
+diff --git a/db/migrate/20140221023421_create_movies.rb~ b/db/migrate/20140221023421_create_movies.rb~
+new file mode 100644
+index 0000000..a5a2bd9
+--- /dev/null
++++ b/db/migrate/20140221023421_create_movies.rb~
+@@ -0,0 +1,16 @@
++class CreateMovies < ActiveRecord::Migration
++  def up
++    create_table :movies do |t|
++			t.string 	"title"
++			t.string 	"rating"
++			t.text 		"description"
++			t.text "whatever"
++			t.datetime 	"release_date"
++			t.timestamps
++		end
++  end
++
++	def down
++		drop_table 'movies'
++  end
++end
+diff --git a/db/schema.rb~ b/db/schema.rb~
+new file mode 100644
+index 0000000..0cb32ff
+--- /dev/null
++++ b/db/schema.rb~
+@@ -0,0 +1,25 @@
++# encoding: UTF-8
++# This file is auto-generated from the current state of the database. Instead
++# of editing this file, please use the migrations feature of Active Record to
++# incrementally modify your database, and then regenerate this schema definition.
++#
++# Note that this schema.rb definition is the authoritative source for your
++# database schema. If you need to create the application database on another
++# system, you should be using db:schema:load, not running all the migrations
++# from scratch. The latter is a flawed and unsustainable approach (the more migrations
++# you'll amass, the slower it'll run and the greater likelihood for issues).
++#
++# It's strongly recommended that you check this file into your version control system.
++
++ActiveRecord::Schema.define(version: 20140219023024) do
++
++	create_table "movies", force: true do |t|
++		t.string	"title"
++		t.string	"rating"
++		t.text		"description"
++		t.datetime	"release_date"
++		t.datetime	"created_at"
++		t.datetime	"updated_at"
++	end
++
++end
+diff --git a/features/AddMovie.feature b/features/AddMovie.feature
+new file mode 100644
+index 0000000..15ae0ae
+--- /dev/null
++++ b/features/AddMovie.feature
+@@ -0,0 +1,11 @@
++Feature: User can manually add movie
++ 
++Scenario: Add a movie
++  Given I am on the Fresh Tomato home page
++  When I follow "Add new movie"
++  Then I should be on the Create New Movie page
++  When I fill in "Title" with "Men In Black"
++  And I select "PG-13" from "Rating"
++  And I press "Save Changes"
++  Then I should be on the Fresh Tomato home page
++  And I should see "Men In Black"
+diff --git a/features/AddMovie.feature~ b/features/AddMovie.feature~
+new file mode 100644
+index 0000000..15ae0ae
+--- /dev/null
++++ b/features/AddMovie.feature~
+@@ -0,0 +1,11 @@
++Feature: User can manually add movie
++ 
++Scenario: Add a movie
++  Given I am on the Fresh Tomato home page
++  When I follow "Add new movie"
++  Then I should be on the Create New Movie page
++  When I fill in "Title" with "Men In Black"
++  And I select "PG-13" from "Rating"
++  And I press "Save Changes"
++  Then I should be on the Fresh Tomato home page
++  And I should see "Men In Black"
+diff --git a/features/step_definitions/web_steps.rb b/features/step_definitions/web_steps.rb
+new file mode 100644
+index 0000000..4d9aab6
+--- /dev/null
++++ b/features/step_definitions/web_steps.rb
+@@ -0,0 +1,254 @@
++# TL;DR: YOU SHOULD DELETE THIS FILE
++#
++# This file was generated by Cucumber-Rails and is only here to get you a head start
++# These step definitions are thin wrappers around the Capybara/Webrat API that lets you
++# visit pages, interact with widgets and make assertions about page content.
++#
++# If you use these step definitions as basis for your features you will quickly end up
++# with features that are:
++#
++# * Hard to maintain
++# * Verbose to read
++#
++# A much better approach is to write your own higher level step definitions, following
++# the advice in the following blog posts:
++#
++# * http://benmabey.com/2008/05/19/imperative-vs-declarative-scenarios-in-user-stories.html
++# * http://dannorth.net/2011/01/31/whose-domain-is-it-anyway/
++# * http://elabs.se/blog/15-you-re-cuking-it-wrong
++#
++
++
++require 'uri'
++require 'cgi'
++require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "paths"))
++require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "selectors"))
++
++module WithinHelpers
++  def with_scope(locator)
++    locator ? within(*selector_for(locator)) { yield } : yield
++  end
++end
++World(WithinHelpers)
++
++# Single-line step scoper
++When /^(.*) within (.*[^:])$/ do |step, parent|
++  with_scope(parent) { When step }
++end
++
++# Multi-line step scoper
++When /^(.*) within (.*[^:]):$/ do |step, parent, table_or_string|
++  with_scope(parent) { When "#{step}:", table_or_string }
++end
++
++Given /^(?:|I )am on (.+)$/ do |page_name|
++  visit path_to(page_name)
++end
++
++When /^(?:|I )go to (.+)$/ do |page_name|
++  visit path_to(page_name)
++end
++
++When /^(?:|I )press "([^"]*)"$/ do |button|
++  click_button(button)
++end
++
++When /^(?:|I )follow "([^"]*)"$/ do |link|
++  click_link(link)
++end
++
++When /^(?:|I )fill in "([^"]*)" with "([^"]*)"$/ do |field, value|
++  fill_in(field, :with => value)
++end
++
++When /^(?:|I )fill in "([^"]*)" for "([^"]*)"$/ do |value, field|
++  fill_in(field, :with => value)
++end
++
++# Use this to fill in an entire form with data from a table. Example:
++#
++#   When I fill in the following:
++#     | Account Number | 5002       |
++#     | Expiry date    | 2009-11-01 |
++#     | Note           | Nice guy   |
++#     | Wants Email?   |            |
++#
++# TODO: Add support for checkbox, select or option
++# based on naming conventions.
++#
++When /^(?:|I )fill in the following:$/ do |fields|
++  fields.rows_hash.each do |name, value|
++    When %{I fill in "#{name}" with "#{value}"}
++  end
++end
++
++When /^(?:|I )select "([^"]*)" from "([^"]*)"$/ do |value, field|
++  select(value, :from => field)
++end
++
++When /^(?:|I )check "([^"]*)"$/ do |field|
++  check(field)
++end
++
++When /^(?:|I )uncheck "([^"]*)"$/ do |field|
++  uncheck(field)
++end
++
++When /^(?:|I )choose "([^"]*)"$/ do |field|
++  choose(field)
++end
++
++When /^(?:|I )attach the file "([^"]*)" to "([^"]*)"$/ do |path, field|
++  attach_file(field, File.expand_path(path))
++end
++
++Then /^(?:|I )should see "([^"]*)"$/ do |text|
++  if page.respond_to? :should
++    page.should have_content(text)
++  else
++    assert page.has_content?(text)
++  end
++end
++
++Then /^(?:|I )should see \/([^\/]*)\/$/ do |regexp|
++  regexp = Regexp.new(regexp)
++
++  if page.respond_to? :should
++    page.should have_xpath('//*', :text => regexp)
++  else
++    assert page.has_xpath?('//*', :text => regexp)
++  end
++end
++
++Then /^(?:|I )should not see "([^"]*)"$/ do |text|
++  if page.respond_to? :should
++    page.should have_no_content(text)
++  else
++    assert page.has_no_content?(text)
++  end
++end
++
++Then /^(?:|I )should not see \/([^\/]*)\/$/ do |regexp|
++  regexp = Regexp.new(regexp)
++
++  if page.respond_to? :should
++    page.should have_no_xpath('//*', :text => regexp)
++  else
++    assert page.has_no_xpath?('//*', :text => regexp)
++  end
++end
++
++Then /^the "([^"]*)" field(?: within (.*))? should contain "([^"]*)"$/ do |field, parent, value|
++  with_scope(parent) do
++    field = find_field(field)
++    field_value = (field.tag_name == 'textarea') ? field.text : field.value
++    if field_value.respond_to? :should
++      field_value.should =~ /#{value}/
++    else
++      assert_match(/#{value}/, field_value)
++    end
++  end
++end
++
++Then /^the "([^"]*)" field(?: within (.*))? should not contain "([^"]*)"$/ do |field, parent, value|
++  with_scope(parent) do
++    field = find_field(field)
++    field_value = (field.tag_name == 'textarea') ? field.text : field.value
++    if field_value.respond_to? :should_not
++      field_value.should_not =~ /#{value}/
++    else
++      assert_no_match(/#{value}/, field_value)
++    end
++  end
++end
++
++Then /^the "([^"]*)" field should have the error "([^"]*)"$/ do |field, error_message|
++  element = find_field(field)
++  classes = element.find(:xpath, '..')[:class].split(' ')
++
++  form_for_input = element.find(:xpath, 'ancestor::form[1]')
++  using_formtastic = form_for_input[:class].include?('formtastic')
++  error_class = using_formtastic ? 'error' : 'field_with_errors'
++
++  if classes.respond_to? :should
++    classes.should include(error_class)
++  else
++    assert classes.include?(error_class)
++  end
++
++  if page.respond_to?(:should)
++    if using_formtastic
++      error_paragraph = element.find(:xpath, '../*[@class="inline-errors"][1]')
++      error_paragraph.should have_content(error_message)
++    else
++      page.should have_content("#{field.titlecase} #{error_message}")
++    end
++  else
++    if using_formtastic
++      error_paragraph = element.find(:xpath, '../*[@class="inline-errors"][1]')
++      assert error_paragraph.has_content?(error_message)
++    else
++      assert page.has_content?("#{field.titlecase} #{error_message}")
++    end
++  end
++end
++
++Then /^the "([^"]*)" field should have no error$/ do |field|
++  element = find_field(field)
++  classes = element.find(:xpath, '..')[:class].split(' ')
++  if classes.respond_to? :should
++    classes.should_not include('field_with_errors')
++    classes.should_not include('error')
++  else
++    assert !classes.include?('field_with_errors')
++    assert !classes.include?('error')
++  end
++end
++
++Then /^the "([^"]*)" checkbox(?: within (.*))? should be checked$/ do |label, parent|
++  with_scope(parent) do
++    field_checked = find_field(label)['checked']
++    if field_checked.respond_to? :should
++      field_checked.should be_true
++    else
++      assert field_checked
++    end
++  end
++end
++
++Then /^the "([^"]*)" checkbox(?: within (.*))? should not be checked$/ do |label, parent|
++  with_scope(parent) do
++    field_checked = find_field(label)['checked']
++    if field_checked.respond_to? :should
++      field_checked.should be_false
++    else
++      assert !field_checked
++    end
++  end
++end
++ 
++Then /^(?:|I )should be on (.+)$/ do |page_name|
++  current_path = URI.parse(current_url).path
++  if current_path.respond_to? :should
++    current_path.should == path_to(page_name)
++  else
++    assert_equal path_to(page_name), current_path
++  end
++end
++
++Then /^(?:|I )should have the following query string:$/ do |expected_pairs|
++  query = URI.parse(current_url).query
++  actual_params = query ? CGI.parse(query) : {}
++  expected_params = {}
++  expected_pairs.rows_hash.each_pair{|k,v| expected_params[k] = v.split(',')} 
++  
++  if actual_params.respond_to? :should
++    actual_params.should == expected_params
++  else
++    assert_equal expected_params, actual_params
++  end
++end
++
++Then /^show me the page$/ do
++  save_and_open_page
++end
+diff --git a/features/support/env.rb b/features/support/env.rb
+new file mode 100644
+index 0000000..9f3b86d
+--- /dev/null
++++ b/features/support/env.rb
+@@ -0,0 +1,58 @@
++# IMPORTANT: This file is generated by cucumber-rails - edit at your own peril.
++# It is recommended to regenerate this file in the future when you upgrade to a
++# newer version of cucumber-rails. Consider adding your own code to a new file
++# instead of editing this one. Cucumber will automatically load all features/**/*.rb
++# files.
++
++require 'cucumber/rails'
++
++# Capybara defaults to CSS3 selectors rather than XPath.
++# If you'd prefer to use XPath, just uncomment this line and adjust any
++# selectors in your step definitions to use the XPath syntax.
++# Capybara.default_selector = :xpath
++
++# By default, any exception happening in your Rails application will bubble up
++# to Cucumber so that your scenario will fail. This is a different from how 
++# your application behaves in the production environment, where an error page will 
++# be rendered instead.
++#
++# Sometimes we want to override this default behaviour and allow Rails to rescue
++# exceptions and display an error page (just like when the app is running in production).
++# Typical scenarios where you want to do this is when you test your error pages.
++# There are two ways to allow Rails to rescue exceptions:
++#
++# 1) Tag your scenario (or feature) with @allow-rescue
++#
++# 2) Set the value below to true. Beware that doing this globally is not
++# recommended as it will mask a lot of errors for you!
++#
++ActionController::Base.allow_rescue = false
++
++# Remove/comment out the lines below if your app doesn't have a database.
++# For some databases (like MongoDB and CouchDB) you may need to use :truncation instead.
++begin
++  DatabaseCleaner.strategy = :transaction
++rescue NameError
++  raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
++end
++
++# You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
++# See the DatabaseCleaner documentation for details. Example:
++#
++#   Before('@no-txn,@selenium,@culerity,@celerity,@javascript') do
++#     # { :except => [:widgets] } may not do what you expect here
++#     # as Cucumber::Rails::Database.javascript_strategy overrides
++#     # this setting.
++#     DatabaseCleaner.strategy = :truncation
++#   end
++#
++#   Before('~@no-txn', '~@selenium', '~@culerity', '~@celerity', '~@javascript') do
++#     DatabaseCleaner.strategy = :transaction
++#   end
++#
++
++# Possible values are :truncation and :transaction
++# The :transaction strategy is faster, but might give you threading problems.
++# See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
++Cucumber::Rails::Database.javascript_strategy = :truncation
++
+diff --git a/features/support/env.rb~ b/features/support/env.rb~
+new file mode 100644
+index 0000000..9f3b86d
+--- /dev/null
++++ b/features/support/env.rb~
+@@ -0,0 +1,58 @@
++# IMPORTANT: This file is generated by cucumber-rails - edit at your own peril.
++# It is recommended to regenerate this file in the future when you upgrade to a
++# newer version of cucumber-rails. Consider adding your own code to a new file
++# instead of editing this one. Cucumber will automatically load all features/**/*.rb
++# files.
++
++require 'cucumber/rails'
++
++# Capybara defaults to CSS3 selectors rather than XPath.
++# If you'd prefer to use XPath, just uncomment this line and adjust any
++# selectors in your step definitions to use the XPath syntax.
++# Capybara.default_selector = :xpath
++
++# By default, any exception happening in your Rails application will bubble up
++# to Cucumber so that your scenario will fail. This is a different from how 
++# your application behaves in the production environment, where an error page will 
++# be rendered instead.
++#
++# Sometimes we want to override this default behaviour and allow Rails to rescue
++# exceptions and display an error page (just like when the app is running in production).
++# Typical scenarios where you want to do this is when you test your error pages.
++# There are two ways to allow Rails to rescue exceptions:
++#
++# 1) Tag your scenario (or feature) with @allow-rescue
++#
++# 2) Set the value below to true. Beware that doing this globally is not
++# recommended as it will mask a lot of errors for you!
++#
++ActionController::Base.allow_rescue = false
++
++# Remove/comment out the lines below if your app doesn't have a database.
++# For some databases (like MongoDB and CouchDB) you may need to use :truncation instead.
++begin
++  DatabaseCleaner.strategy = :transaction
++rescue NameError
++  raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
++end
++
++# You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
++# See the DatabaseCleaner documentation for details. Example:
++#
++#   Before('@no-txn,@selenium,@culerity,@celerity,@javascript') do
++#     # { :except => [:widgets] } may not do what you expect here
++#     # as Cucumber::Rails::Database.javascript_strategy overrides
++#     # this setting.
++#     DatabaseCleaner.strategy = :truncation
++#   end
++#
++#   Before('~@no-txn', '~@selenium', '~@culerity', '~@celerity', '~@javascript') do
++#     DatabaseCleaner.strategy = :transaction
++#   end
++#
++
++# Possible values are :truncation and :transaction
++# The :transaction strategy is faster, but might give you threading problems.
++# See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
++Cucumber::Rails::Database.javascript_strategy = :truncation
++
+diff --git a/features/support/paths.rb b/features/support/paths.rb
+new file mode 100644
+index 0000000..334f3f9
+--- /dev/null
++++ b/features/support/paths.rb
+@@ -0,0 +1,45 @@
++# TL;DR: YOU SHOULD DELETE THIS FILE
++#
++# This file is used by web_steps.rb, which you should also delete
++#
++# You have been warned
++module NavigationHelpers
++  # Maps a name to a path. Used by the
++  #
++  #   When /^I go to (.+)$/ do |page_name|
++  #
++  # step definition in web_steps.rb
++  #
++  def path_to(page_name)
++    case page_name
++
++    when /^the home\s?page$/
++      '/'
++
++    when /^the Fresh Tomato home page$/
++      '/movies'
++    when /^Add a new movie$/
++      '/movies/new'
++    when /^the Create a New Movie page$/
++      '/movies/new'
++
++    # Add more mappings here.
++    # Here is an example that pulls values out of the Regexp:
++    #
++    #   when /^(.*)'s profile page$/i
++    #     user_profile_path(User.find_by_login($1))
++
++    else
++      begin
++        page_name =~ /^the (.*) page$/
++        path_components = $1.split(/\s+/)
++        self.send(path_components.push('path').join('_').to_sym)
++      rescue NoMethodError, ArgumentError
++        raise "Can't find mapping from \"#{page_name}\" to a path.\n" +
++          "Now, go and add a mapping in #{__FILE__}"
++      end
++    end
++  end
++end
++
++World(NavigationHelpers)
+diff --git a/features/support/paths.rb~ b/features/support/paths.rb~
+new file mode 100644
+index 0000000..0830713
+--- /dev/null
++++ b/features/support/paths.rb~
+@@ -0,0 +1,44 @@
++# TL;DR: YOU SHOULD DELETE THIS FILE
++#
++# This file is used by web_steps.rb, which you should also delete
++#
++# You have been warned
++module NavigationHelpers
++  # Maps a name to a path. Used by the
++  #
++  #   When /^I go to (.+)$/ do |page_name|
++  #
++  # step definition in web_steps.rb
++  #
++  def path_to(page_name)
++    case page_name
++
++    when /^the home\s?page$/
++      '/'
++	when /^the Fresh Tomato home page$/
++	  '/movies'
++	when /^Add a new movie$/
++	  '/movies/new'
++	when /^the Create a new Movie page$/
++	  '/movies/new'
++
++    # Add more mappings here.
++    # Here is an example that pulls values out of the Regexp:
++    #
++    #   when /^(.*)'s profile page$/i
++    #     user_profile_path(User.find_by_login($1))
++
++    else
++      begin
++        page_name =~ /^the (.*) page$/
++        path_components = $1.split(/\s+/)
++        self.send(path_components.push('path').join('_').to_sym)
++      rescue NoMethodError, ArgumentError
++        raise "Can't find mapping from \"#{page_name}\" to a path.\n" +
++          "Now, go and add a mapping in #{__FILE__}"
++      end
++    end
++  end
++end
++
++World(NavigationHelpers)
+diff --git a/features/support/selectors.rb b/features/support/selectors.rb
+new file mode 100644
+index 0000000..33bebc1
+--- /dev/null
++++ b/features/support/selectors.rb
+@@ -0,0 +1,44 @@
++# TL;DR: YOU SHOULD DELETE THIS FILE
++#
++# This file is used by web_steps.rb, which you should also delete
++#
++# You have been warned
++module HtmlSelectorsHelpers
++  # Maps a name to a selector. Used primarily by the
++  #
++  #   When /^(.+) within (.+)$/ do |step, scope|
++  #
++  # step definitions in web_steps.rb
++  #
++  def selector_for(locator)
++    case locator
++
++    when "the page"
++      "html > body"
++
++    # Add more mappings here.
++    # Here is an example that pulls values out of the Regexp:
++    #
++    #  when /^the (notice|error|info) flash$/
++    #    ".flash.#{$1}"
++
++    # You can also return an array to use a different selector
++    # type, like:
++    #
++    #  when /the header/
++    #    [:xpath, "//header"]
++
++    # This allows you to provide a quoted selector as the scope
++    # for "within" steps as was previously the default for the
++    # web steps:
++    when /^"(.+)"$/
++      $1
++
++    else
++      raise "Can't find mapping from \"#{locator}\" to a selector.\n" +
++        "Now, go and add a mapping in #{__FILE__}"
++    end
++  end
++end
++
++World(HtmlSelectorsHelpers)
+diff --git a/lib/tasks/cucumber.rake b/lib/tasks/cucumber.rake
+new file mode 100644
+index 0000000..9f53ce4
+--- /dev/null
++++ b/lib/tasks/cucumber.rake
+@@ -0,0 +1,65 @@
++# IMPORTANT: This file is generated by cucumber-rails - edit at your own peril.
++# It is recommended to regenerate this file in the future when you upgrade to a
++# newer version of cucumber-rails. Consider adding your own code to a new file
++# instead of editing this one. Cucumber will automatically load all features/**/*.rb
++# files.
++
++
++unless ARGV.any? {|a| a =~ /^gems/} # Don't load anything when running the gems:* tasks
++
++vendored_cucumber_bin = Dir["#{Rails.root}/vendor/{gems,plugins}/cucumber*/bin/cucumber"].first
++$LOAD_PATH.unshift(File.dirname(vendored_cucumber_bin) + '/../lib') unless vendored_cucumber_bin.nil?
++
++begin
++  require 'cucumber/rake/task'
++
++  namespace :cucumber do
++    Cucumber::Rake::Task.new({:ok => 'test:prepare'}, 'Run features that should pass') do |t|
++      t.binary = vendored_cucumber_bin # If nil, the gem's binary is used.
++      t.fork = true # You may get faster startup if you set this to false
++      t.profile = 'default'
++    end
++
++    Cucumber::Rake::Task.new({:wip => 'test:prepare'}, 'Run features that are being worked on') do |t|
++      t.binary = vendored_cucumber_bin
++      t.fork = true # You may get faster startup if you set this to false
++      t.profile = 'wip'
++    end
++
++    Cucumber::Rake::Task.new({:rerun => 'test:prepare'}, 'Record failing features and run only them if any exist') do |t|
++      t.binary = vendored_cucumber_bin
++      t.fork = true # You may get faster startup if you set this to false
++      t.profile = 'rerun'
++    end
++
++    desc 'Run all features'
++    task :all => [:ok, :wip]
++
++    task :statsetup do
++      require 'rails/code_statistics'
++      ::STATS_DIRECTORIES << %w(Cucumber\ features features) if File.exist?('features')
++      ::CodeStatistics::TEST_TYPES << "Cucumber features" if File.exist?('features')
++    end
++  end
++  desc 'Alias for cucumber:ok'
++  task :cucumber => 'cucumber:ok'
++
++  task :default => :cucumber
++
++  task :features => :cucumber do
++    STDERR.puts "*** The 'features' task is deprecated. See rake -T cucumber ***"
++  end
++
++  # In case we don't have the generic Rails test:prepare hook, append a no-op task that we can depend upon.
++  task 'test:prepare' do
++  end
++
++  task :stats => 'cucumber:statsetup'
++rescue LoadError
++  desc 'cucumber rake task not available (cucumber not installed)'
++  task :cucumber do
++    abort 'Cucumber rake task is not available. Be sure to install cucumber as a gem or plugin'
++  end
++end
++
++end
+diff --git a/script/cucumber b/script/cucumber
+new file mode 100755
+index 0000000..7fa5c92
+--- /dev/null
++++ b/script/cucumber
+@@ -0,0 +1,10 @@
++#!/usr/bin/env ruby
++
++vendored_cucumber_bin = Dir["#{File.dirname(__FILE__)}/../vendor/{gems,plugins}/cucumber*/bin/cucumber"].first
++if vendored_cucumber_bin
++  load File.expand_path(vendored_cucumber_bin)
++else
++  require 'rubygems' unless ENV['NO_RUBYGEMS']
++  require 'cucumber'
++  load Cucumber::BINARY
++end
