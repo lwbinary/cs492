@@ -2,7 +2,7 @@ class Movie < ActiveRecord::Base
 	validates :title, :presence => true
 	validates :release_date, :presence => true
 	validate :title_char_limit # uses custom validator below
-  	validate :released_2016_or_earlier # uses custom validator below
+  	validate :released_2015_or_earlier # uses custom validator below
 	validates_uniqueness_of :title
 
 	def title_char_limit
@@ -10,9 +10,9 @@ class Movie < ActiveRecord::Base
 		self.title.length < 3
 	end
 
-	def released_2016_or_earlier
-		errors.add(:release_date, 'must be 2016 or earlier') if
-		self.release_date > Date.parse('31 Dec 2016')
+	def released_2015_or_earlier
+		errors.add(:release_date, 'must be 2015 or earlier') if
+		self.release_date > Date.parse('31 Dec 2015')
 	end
 
 	before_save :capitalize_title # capitalize title before save
